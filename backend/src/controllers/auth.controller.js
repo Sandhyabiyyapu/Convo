@@ -106,6 +106,7 @@ export async function login(req, res) {// Login function to handle user authenti
 
 // Logout function to handle user logout
 // This function clears the JWT cookie to log out the user
+//logout function can also be a get method but recommended is post cuz post method is used for the operations that change the state of the server and logout does that, it distroys a session and invalidates the JWT token, basically it is updating something on server sides
 export function logout(req, res) {// Logout function to handle user logout
   // Clear the JWT cookie to log out the user
   res.clearCookie("jwt");

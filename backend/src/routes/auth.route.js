@@ -12,4 +12,11 @@ router.post("/logout", logout)
 
 router.post("/onboarding", protectRoute, onboard)
 
+//Check if user is logged in or not
+// This route can be used to check if the user is authenticated
+router.get("/me", protectRoute, (req, res) => {
+    // This route can be used to get the authenticated user's information
+    res.status(200).json({ success : true, user: req.user })
+})
+
 export default router
