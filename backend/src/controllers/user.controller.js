@@ -77,3 +77,40 @@ export async function sendFriendRequest(req, res) {
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
+
+export async function acceptFriendRequest(req, res) {
+    try{
+        const {id:requestId} = req.params; // Get the request ID from the request parameters
+
+        const friendRequest = await FriendRequest.findById(requestId); // Find the friend request by ID
+        if (!friendRequest) { // Check if the friend request exists
+            return res.status(404).json({ message: "Friend request not found." });
+        }
+        //verify the current user is the recipient
+        if (friendRequest.recipient.toString() !== req.user._id.toString()) { // Check if the current user is the recipient of the request
+            return res.status(403).json({ message: "You are not authorized to accept this friend request." });
+        }
+        // Update the friend request status to accepted
+        friendRequest.status = "accepted"; // Set the status to accepted
+        await friendRequest.save(); // Save the updated friend request
+
+        //Add each user to the other's friends array
+        //$addToSet is used to add an element to an array only if it does not already exist in the array, preventing duplicates
+        // This ensures that both users are added to each other's friends list only once, even if
+        // Add the sender to the recipient's friends list
+        await User.findByIdAndUpdate(friendRequest.sender, {
+            $addToSet: { friends: FriendRequest.recipient } // Add the recipient to the sender's friends list, using $addToSet to avoid duplicates
+        }); // Return the updated user
+
+        // Add the recipient to the sender's friends list
+        await User.findByIdAndUpdate(friendRequest.recipient, {
+            $addToSet: { friends: FriendRequest.sender } // Add the sender to the recipient's friends list, using $addToSet to avoid duplicates
+        }); // Return the updated user
+
+        res.status(200).json({ message: "Friend request accepted successfully." }); // Return success message
+
+    }catch(error) {
+        console.error("Error accepting friend request:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+}
