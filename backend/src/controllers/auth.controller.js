@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 export async function signup(req, res) {// Signup function to handle user registration
   // Extract email, password, and fullName from the request body
@@ -27,12 +28,10 @@ export async function signup(req, res) {// Signup function to handle user regist
     
     const idx = Math.floor(Math.random() * 100) + 1;
     const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
-    // Hash the password before saving
-    const bcrypt = await import('bcryptjs');// Import bcrypt for password hashing
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Do NOT hash the password here; let Mongoose pre-save hook handle it
     const newUser = await User.create({
       email,
-      password: hashedPassword,
+      password,
       fullName,
       profilePic: randomAvatar
     });
@@ -54,30 +53,27 @@ export async function signup(req, res) {// Signup function to handle user regist
   }
 }   
 
+// Login function to handle user authentication
+// This function checks if the user exists, verifies the password, and returns a JWT token if
 export async function login(req, res) {// Login function to handle user authentication
-  try{
+  try {
     const { email, password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const user = await User.findOne({ email });// Find the user by email
-    // If user does not exist, return 404 error
-
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const bcrypt = await import('bcryptjs');// Import bcrypt for password hashing
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
+    const isPasswordValid = await user.matchPassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });// Create a JWT token for the user
-    // Set the JWT token in a cookie
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -86,16 +82,17 @@ export async function login(req, res) {// Login function to handle user authenti
     });
 
     res.status(200).json({ success: true, user });
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Error during login:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
 
 
-
+// Logout function to handle user logout
+// This function clears the JWT cookie to log out the user
 export function logout(req, res) {// Logout function to handle user logout
   // Clear the JWT cookie to log out the user
-  res.send("Logout Route");
+  res.clearCookie("jwt");
+  res.status(200).json({ message: "Logged out successfully" });
 }   

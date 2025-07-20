@@ -45,10 +45,6 @@ const userSchema = new mongoose.Schema({// User schema definition
     }],
 },{timestamps:true});
 
-// Create a User model based on the userSchema
-// This model will be used to interact with the users collection in the MongoDB database
-const User = mongoose.model('User', userSchema);
-
 //pre hook to hash password before saving
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next(); // If password is not modified, skip hashing
@@ -62,4 +58,15 @@ userSchema.pre('save', async function(next) {
         next(error);
     }
 })
+
+// Method to compare entered password with stored password
+// This method will be used to verify the user's password during login
+userSchema.methods.matchPassword = async function(enteredPassword) {// Method to compare entered password with stored password
+    const isPasswordCorrect = await bcrypt.compare(enteredPassword, this.password);// Compare the entered password with the hashed password
+    return isPasswordCorrect; // Return true if the passwords match, false otherwise
+}
+
+// Create a User model based on the userSchema
+// This model will be used to interact with the users collection in the MongoDB database
+const User = mongoose.model('User', userSchema);
 export default User;
