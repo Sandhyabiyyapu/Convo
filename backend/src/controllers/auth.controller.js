@@ -111,3 +111,51 @@ export function logout(req, res) {// Logout function to handle user logout
   res.clearCookie("jwt");
   res.status(200).json({ message: "Logged out successfully" });
 }   
+
+export async function onboard(req, res) {
+  // This function can be used to handle user onboarding logic
+  try{
+    const userId = req.user._id; // Get the user ID from the request object
+    const { fullName, bio, nativeLanguage, learningLanguage, location } = req.body; // Extract additional user data from the request body
+
+    if(!fullName || !bio || !nativeLanguage || !learningLanguage || !location) {
+      return res.status(400).json({ 
+        message: "All fields are required" ,
+        missingFields: [
+          !fullName && "fullName",
+          !bio && "bio",
+          !nativeLanguage && "nativeLanguage",
+          !learningLanguage && "learningLanguage",
+          !location && "location" 
+        ].filter(Boolean) // Filter out any undefined fields ,
+      });
+    }
+    
+    const updatedUser = await User.findByIdAndUpdate(userId, {// Update the user with the provided data
+      ...req.body, // Spread the request body to update the user with the provided data
+      isOnboarded: true // Set isOnboarded to true to indicate that the user has completed onboarding
+    }, { new: true}); // Update the user with the provided data
+    // The select method is used to exclude the password and version fields from the response
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    //Update the user in StreamChat as well
+    try{
+      await upsertStreamUser({
+        id: updatedUser._id.toString(),
+        name: updatedUser.fullName,
+        image: updatedUser.profilePic || "",
+      });// Pass the necessary user data to upsertStreamUser
+      console.log(`Stream user updated for onboarding ${updatedUser.fullName}`);
+    }catch (streamError) {
+      console.log("Error updating Stream user during onboarding:", streamError.message);
+    }
+    
+
+    res.status(200).json({ success: true, user: updatedUser });// Return the updated user data in the response
+  }catch (error) {
+    console.error("Error during onboarding:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
