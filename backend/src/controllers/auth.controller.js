@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { upsertStreamUser } from '../lib/stream.js'; // Assuming you have a function to sync user with StreamChat
 
 export async function signup(req, res) {// Signup function to handle user registration
   // Extract email, password, and fullName from the request body
@@ -36,6 +37,19 @@ export async function signup(req, res) {// Signup function to handle user regist
       profilePic: randomAvatar
     });
 
+    //Create the user in stream as well
+    // This is where you would call the upsertStreamUser function to sync user data with StreamChat
+    try{
+      await upsertStreamUser({
+        id: newUser._id.toString(),
+        name: newUser.fullName,
+        image: newUser.profilePic || "",
+      });// Pass the necessary user data to upsertStreamUser
+      console.log(`Stream user created for ${newUser.fullName}`);
+    }catch (error) {
+      console.log("error creating stream user:", error);
+    }
+
     const token=jwt.sign({userId:newUser._id}, process.env.JWT_SECRET, {expiresIn: '7d'});// Create a JWT token for the new user
     // Set the JWT token in a cookie
     res.cookie("jwt", token, {
@@ -67,7 +81,8 @@ export async function login(req, res) {// Login function to handle user authenti
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-
+    // Verify the password using bcrypt
+    // The matchPassword method is defined in the User model to compare the entered password with the stored hashed password
     const isPasswordValid = await user.matchPassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid email or password" });
