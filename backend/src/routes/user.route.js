@@ -25,4 +25,5 @@ router.put("/friend-request/:id/accept", acceptFriendRequest); // Accept a frien
 router.get("/friend-requests", getFriendRequests); // Get the list of friend requests for the authenticated user
 
 router.get("/outgoing-friend-requests", getOutgoingFriendRequests); // Get the list of outgoing friend requests for the authenticated user
+
 export default router;

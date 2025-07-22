@@ -24,4 +24,14 @@ export const upsertStreamUser = async (userData) => {// Function to create or up
 }
 
 // Function to generate a StreamChat token for a user
-export const generateStreamToken = (userId) => {}// Function to generate a StreamChat token for a user
+export const generateStreamToken = (userId) => {
+    try {
+        //ensure user id is a string
+        const userIdStr = userId.toString();
+        return streamClient.createToken(userIdStr); // Generate a token for the user
+    } catch (error) {
+        console.error("Error generating Stream token:", error);
+        throw new Error("Failed to generate Stream token");
+        
+    }
+}// Function to generate a StreamChat token for a user
