@@ -10,6 +10,7 @@ import NotificationsPage from "./pages/NotificationsPage.jsx";
 import {Toaster} from "react-hot-toast";
 import useAuthUser from "./hooks/useAuthUser.js";
 import Layout from "./Components/Layout.jsx";
+import { useThemeStore } from "./Store/useThemeStore.js";
 
 
 // Loading component
@@ -22,6 +23,7 @@ const PageLoader = () => (
 const App = () => {
   //tanstack query 
   const { isLoading, authUser } = useAuthUser();
+  const { theme } = useThemeStore();
 
   const isAuthenticated = Boolean(authUser)
   const isOnBoarded = authUser?.isOnBoarded
@@ -40,7 +42,7 @@ const App = () => {
   // The Routes component defines the different paths and their corresponding components
   // The Route component specifies the path and the component to render when that path is accessed
   return (
-    <div className="h-screen" data-theme="night">
+    <div className="h-screen" data-theme={theme}>
       
       <Routes>
         <Route path="/" element={isAuthenticated && isOnBoarded ? (
