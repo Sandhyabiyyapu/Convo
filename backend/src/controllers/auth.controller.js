@@ -134,7 +134,7 @@ export async function onboard(req, res) {
     
     const updatedUser = await User.findByIdAndUpdate(userId, {// Update the user with the provided data
       ...req.body, // Spread the request body to update the user with the provided data
-      isOnboarded: true // Set isOnboarded to true to indicate that the user has completed onboarding
+      isOnBoarded: true // Set isOnBoarded to true to indicate that the user has completed onboarding
     }, { new: true}); // Update the user with the provided data
     // The select method is used to exclude the password and version fields from the response
     if (!updatedUser) {

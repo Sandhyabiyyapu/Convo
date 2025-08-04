@@ -2,8 +2,6 @@ import React from 'react'
 import { useState } from 'react';
 import { ShipWheelIcon } from 'lucide-react';
 import { Link } from 'react-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { signup } from "../lib/api"; // Centralized API function for signup
 
 /**
  * SignUpPage Component
@@ -26,7 +24,7 @@ const SignUpPage = () => {
 
   // Access to TanStack Query client for cache management
   // Used to invalidate cached queries after successful signup
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   /**
    * TanStack Query Mutation Hook
@@ -38,12 +36,12 @@ const SignUpPage = () => {
    * - Automatic error handling and loading states
    * - Optimistic updates and rollback on failure
    */
-  const { mutate:signupMutation, isPending, error,} = useMutation({
-    mutationFn: signup, // Centralized API function for better maintainability
-    // After successful signup, invalidate cached auth queries
-    // This ensures fresh user data is fetched on subsequent requests
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-  });
+  // const { mutate:signupMutation, isPending, error,} = useMutation({
+  //   mutationFn: signup, // Centralized API function for better maintainability
+  //   // After successful signup, invalidate cached auth queries
+  //   // This ensures fresh user data is fetched on subsequent requests
+  //   onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
+  // });
 
   /**
    * Form submission handler
@@ -52,10 +50,14 @@ const SignUpPage = () => {
    * This ensures proper error handling and loading states
    * Now passes signUpData as parameter to the mutation function
    */
+  const { isPending, error, signupMutation } = useSignUp();
+
+  // This is how we did it using our custom hook - optimized version
   const handleSignUp = (e) => {
     e.preventDefault(); // Prevent default form submission
     signupMutation(signUpData); // Pass form data to the signup mutation
   }
+  
 
   return (
     // Main container with responsive padding and forest theme
