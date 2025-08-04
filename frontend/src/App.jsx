@@ -11,6 +11,7 @@ import {Toaster} from "react-hot-toast";
 import useAuthUser from "./hooks/useAuthUser.js";
 import Layout from "./Components/Layout.jsx";
 import { useThemeStore } from "./Store/useThemeStore.js";
+import NoFriendsFound from "./Components/NoFriendsFound.jsx";
 
 
 // Loading component
@@ -52,13 +53,29 @@ const App = () => {
         ) : (
           <Navigate to ={!isAuthenticated ? "/login" : "onboarding"}/>
         )} />
-        <Route path="/signup" element={!isAuthenticated ? <SignUpPage /> : <Navigate to={
-          isOnBoarded ? "/" : "/onboarding"
-        } />} />
-        <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to={
-          isOnBoarded ? "/" : "/onboarding"
-        } />} />
-        <Route path="/onboarding" element={isAuthenticated ? <OnboardingPage /> : <Navigate to="/login" />} />
+        <Route 
+          path="/signup" 
+          element={
+            !isAuthenticated ? <SignUpPage /> : <Navigate to={isOnBoarded ? "/" : "/onboarding"} />
+          } 
+        />
+        <Route 
+          path="/login" 
+          element={
+            !isAuthenticated ? <LoginPage /> : <Navigate to={isOnBoarded ? "/" : "/onboarding"} />
+          } 
+        />
+        <Route path="/notifications"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <Layout showSidebar={true}>
+                <NotificationsPage />
+              </Layout>
+            ) : (
+              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+            )
+          }
+        />
         <Route path="/chat" element={isAuthenticated ? <ChatPage /> : <Navigate to="/login" />} />
         <Route path="/call" element={isAuthenticated ? <CallPage /> : <Navigate to="/login" />} />
         <Route path="/notifications" element={isAuthenticated ? <NotificationsPage /> : <Navigate to="/login" />} />
