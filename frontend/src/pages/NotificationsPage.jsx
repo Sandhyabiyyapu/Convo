@@ -20,8 +20,9 @@ const NotificationsPage = () => {
     },
   });
 
-  const incomingRequests = friendRequests?.incomingReqs || [];
-  const acceptedRequests = friendRequests?.acceptedReqs || [];
+  // Match backend response keys
+  const incomingRequests = friendRequests?.incomingRequests || [];
+  const acceptedRequests = friendRequests?.acceptedRequests || [];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">

@@ -9,10 +9,10 @@ import {
 import { Link } from "react-router-dom";
 import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon } from "lucide-react";
 
-import { capitalize } from "../lib/utils";
+import { capitialize } from "../lib/utils";
 
-import FriendCard, { getLanguageFlag } from "../components/FriendCard";
-import NoFriendsFound from "../components/NoFriendsFound";
+import FriendCard, { getLanguageFlag } from "../Components/FriendCard";
+import NoFriendsFound from "../Components/NoFriendsFound";
 import useAuthUser from "../hooks/useAuthUser";
 
 const HomePage = () => {
@@ -27,11 +27,13 @@ const HomePage = () => {
     enabled: !!authUser, // Only run if user is authenticated
   });
 
-  const { data: recommendedUsers = [], isLoading: loadingUsers } = useQuery({
+  const { data: recommendedUsersRaw, isLoading: loadingUsers } = useQuery({
     queryKey: ["users"],
-    queryFn: getRecommendedUsers,
-    enabled: !!authUser, // Only run if user is authenticated
+    queryFn: getRecommendedUsers
   });
+  const recommendedUsers = Array.isArray(recommendedUsersRaw?.recommendedUsers)
+    ? recommendedUsersRaw.recommendedUsers
+    : [];
 
   const { data: outgoingFriendReqs } = useQuery({
     queryKey: ["outgoingFriendReqs"],
@@ -144,11 +146,11 @@ const HomePage = () => {
                       <div className="flex flex-wrap gap-1.5">
                         <span className="badge badge-secondary">
                           {getLanguageFlag(user.nativeLanguage)}
-                          Native: {capitalize(user.nativeLanguage)}
+                          Native: {capitialize(user.nativeLanguage)}
                         </span>
                         <span className="badge badge-outline">
                           {getLanguageFlag(user.learningLanguage)}
-                          Learning: {capitalize(user.learningLanguage)}
+                          Learning: {capitialize(user.learningLanguage)}
                         </span>
                       </div>
 

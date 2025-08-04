@@ -8,16 +8,10 @@ import ChatPage from "./pages/ChatPage.jsx";
 import CallPage from "./pages/CallPage.jsx";
 import NotificationsPage from "./pages/NotificationsPage.jsx";
 import {Toaster} from "react-hot-toast";
+import PageLoader from "./Components/PageLoader.jsx";
 import useAuthUser from "./hooks/useAuthUser.js";
 import Layout from "./Components/Layout.jsx";
 import { useThemeStore } from "./Store/useThemeStore.js";
-
-// Loading component
-const PageLoader = () => (
-  <div className="h-screen flex items-center justify-center">
-    <div className="loading loading-spinner loading-lg"></div>
-  </div>
-);
 
 const App = () => {
   //tanstack query 
@@ -71,8 +65,16 @@ const App = () => {
         <Route 
           path="/onboarding" 
           element={
-            isAuthenticated ? <OnboardingPage /> : <Navigate to="/login" />
-          } 
+            isAuthenticated ? (
+              !isOnBoarded ? (
+                <OnboardingPage />
+              ) : (
+                <Navigate to="/" />
+              )
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
         />
         <Route 
           path="/notifications"

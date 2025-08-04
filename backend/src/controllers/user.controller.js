@@ -3,17 +3,26 @@ import FriendRequest from "../models/FriendRequest.js"; // Import the FriendRequ
 
 export async function getRecommendedUsers(req, res) {
     try {
-        const currentUserId = req.user.id; // Get the authenticated user's ID from the request object, _id can also be used
-        const currentUser = req.user; // Get the authenticated user object from the request
+        const currentUserId = req.user.id;
+        const currentUser = await User.findById(currentUserId).select('friends');
+
+        // Find all users with whom the current user has a pending or accepted friend request
+        const outgoingRequests = await FriendRequest.find({ sender: currentUserId }).select('recipient');
+        const incomingRequests = await FriendRequest.find({ recipient: currentUserId }).select('sender');
+
+        // Collect all user IDs to exclude
+        const excludeIds = [
+            currentUserId,
+            ...currentUser.friends.map(f => f.toString()),
+            ...outgoingRequests.map(r => r.recipient.toString()),
+            ...incomingRequests.map(r => r.sender.toString())
+        ];
 
         const recommendedUsers = await User.find({
-            $and: [
-                { _id: { $ne: currentUserId } }, // Exclude the current user
-                { _id: { $nin: currentUser.friends } } ,// Exclude users who are already friends
-                {isOnBoardes: true} // Only include users who have completed onboarding
-            ]
-        })
-        res.status(200).json({recommendedUsers}); // Return the recommended users
+            _id: { $nin: excludeIds },
+            isOnBoarded: true
+        });
+        res.status(200).json({ recommendedUsers });
     } catch (error) {
         console.error("Error fetching recommended users:", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -36,13 +45,13 @@ export async function getMyFriends(req, res) {
 export async function sendFriendRequest(req, res) {
     try {
         const senderId = req.user._id; // Get the sender's ID from the request object
-        const receiverId = req.params.id; // Get the receiver's ID from the request parameters
+        const recipientId = req.params.id; // Get the recipient's ID from the request parameters
 
-        if (senderId === receiverId) {// Check if the sender is trying to send a request to themselves
+        if (senderId === recipientId) {// Check if the sender is trying to send a request to themselves
             return res.status(400).json({ message: "You cannot send a friend request to yourself." });
         }
 
-        const recipient = await User.findById(receiverId); // Find the recipient user by ID
+        const recipient = await User.findById(recipientId); // Find the recipient user by ID
         if (!recipient) { // Check if the recipient exists
             return res.status(404).json({ message: "Recipient not found." });
         }   
@@ -55,8 +64,8 @@ export async function sendFriendRequest(req, res) {
         // Check if a friend request already exists between the sender and recipient
         const existingRequest = await FriendRequest.findOne({
             $or: [
-                { sender: senderId, receiver: receiverId }, // Check if a request from sender to receiver exists
-                { sender: receiverId, receiver: senderId } // Check if a request from receiver to sender exists
+                { sender: senderId, recipient: recipientId }, // Check if a request from sender to recipient exists
+                { sender: recipientId, recipient: senderId } // Check if a request from recipient to sender exists
             ]
         });
 
@@ -65,9 +74,9 @@ export async function sendFriendRequest(req, res) {
         }
 
         // Create a new friend request
-        const newRequest = new FriendRequest.create({
+        const newRequest = await FriendRequest.create({
             sender: senderId,
-            receiver: receiverId
+            recipient: recipientId
         });
         
         res.status(201).json(newRequest ); // Return the created friend request
@@ -94,18 +103,16 @@ export async function acceptFriendRequest(req, res) {
         friendRequest.status = "accepted"; // Set the status to accepted
         await friendRequest.save(); // Save the updated friend request
 
-        //Add each user to the other's friends array
-        //$addToSet is used to add an element to an array only if it does not already exist in the array, preventing duplicates
-        // This ensures that both users are added to each other's friends list only once, even if
-        // Add the sender to the recipient's friends list
-        await User.findByIdAndUpdate(friendRequest.sender, {
-            $addToSet: { friends: FriendRequest.recipient } // Add the recipient to the sender's friends list, using $addToSet to avoid duplicates
-        }); // Return the updated user
-
+        // Add each user to the other's friends array
         // Add the recipient to the sender's friends list
+        await User.findByIdAndUpdate(friendRequest.sender, {
+            $addToSet: { friends: friendRequest.recipient }
+        });
+
+        // Add the sender to the recipient's friends list
         await User.findByIdAndUpdate(friendRequest.recipient, {
-            $addToSet: { friends: FriendRequest.sender } // Add the sender to the recipient's friends list, using $addToSet to avoid duplicates
-        }); // Return the updated user
+            $addToSet: { friends: friendRequest.sender }
+        });
 
         res.status(200).json({ message: "Friend request accepted successfully." }); // Return success message
 
@@ -141,7 +148,7 @@ export async function getOutgoingFriendRequests(req, res) {
         const outgoingRequests = await FriendRequest.find({
             sender: req.user.id,
             status: "pending" // Only find requests that are pending
-        }).populate("receiver", "fullName profilePic nativeLanguage learningLanguage"); // Populate the receiver field with specific fields
+        }).populate("recipient", "fullName profilePic nativeLanguage learningLanguage"); // Populate the recipient field with specific fields
 
         res.status(200).json(outgoingRequests); // Return the outgoing friend requests
     } catch (error) {
