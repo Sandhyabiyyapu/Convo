@@ -6,9 +6,18 @@ const useAuthUser = () =>{
         queryKey: ["authUser"],
         queryFn: getAuthUser,
         retry: false, //auth checks don't need retries
+        onError: (error) => {
+            console.log("Auth check failed:", error);
+        }
     });
     
-    return { isLoading: authUser.isLoading, authUser: authUser.data?.user };
+    // Return null for authUser if there's an error or no data
+    const user = authUser.error ? null : authUser.data?.user;
+    
+    return { 
+        isLoading: authUser.isLoading, 
+        authUser: user 
+    };
 
 }
 export default useAuthUser;

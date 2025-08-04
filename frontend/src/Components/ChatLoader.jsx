@@ -1,3 +1,4 @@
+import React from "react";
 import { LoaderIcon } from "lucide-react";
 
 function ChatLoader() {

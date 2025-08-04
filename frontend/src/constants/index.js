@@ -186,6 +186,11 @@ export const THEMES = [
   
   export const LANGUAGE_TO_FLAG = {
     english: "gb",
+    telugu: "in",
+    kannada: "in", 
+    tamil: "in",
+    malayalam: "in",
+    urdu: "pk",
     spanish: "es",
     french: "fr",
     german: "de",

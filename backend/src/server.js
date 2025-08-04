@@ -16,7 +16,7 @@ const app = express()// Create an Express application
 const PORT = process.env.PORT || 3000// Set the port from environment variables or default to 3000
 
 app.use(cors({
-  origin: "http://localhost:5173", // Allow requests from this origin
+  origin: ["http://localhost:5173", "http://localhost:5174"], // Allow requests from both ports
   credentials: true, // Allow frontend to send cookies with requests
 }))
 

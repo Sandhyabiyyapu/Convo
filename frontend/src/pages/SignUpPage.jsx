@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState } from 'react';
 import { ShipWheelIcon } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import useSignUp from '../hooks/useSignUp';
 
 /**
