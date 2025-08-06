@@ -11,7 +11,6 @@ import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon } from "lucide-rea
 import { capitialize } from "../lib/utils"; // Utility for language capitalization
 import FriendCard, { getLanguageFlag } from "../Components/FriendCard"; // FriendCard component and language flag utility
 import NoFriendsFound from "../Components/NoFriendsFound"; // Component to show when no friends are found
-import NoFriendsFound from "../Components/NoFriendsFound";
 // Import custom hook to get authenticated user
 import useAuthUser from "../hooks/useAuthUser";
 
